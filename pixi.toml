@@ -43,6 +43,7 @@ build = { cmd = "cmake --build build --config Release  -- /m", depends_on = [
 [build-dependencies]
 cmake = "3.27.6"
 cxx-compiler = "1.6.0.*"
+ninja = "1.11.1"
 
 [dependencies]
 boost = "1.84.0.*"

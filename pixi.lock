@@ -4590,6 +4590,89 @@ package:
   license: X11 AND BSD-3-Clause
   size: 794741
   timestamp: 1698751574074
+- name: ninja
+  version: 1.11.1
+  manager: conda
+  platform: linux-64
+  dependencies:
+    libgcc-ng: '>=12'
+    libstdcxx-ng: '>=12'
+  url: https://conda.anaconda.org/conda-forge/linux-64/ninja-1.11.1-h924138e_0.conda
+  hash:
+    md5: 73a4953a2d9c115bdc10ff30a52f675f
+    sha256: b555247ac8859b4ff311e3d708a0640f1bfe9fae7125c485b444072474a84c41
+  optional: false
+  category: main
+  build: h924138e_0
+  arch: x86_64
+  subdir: linux-64
+  build_number: 0
+  license: Apache-2.0
+  license_family: Apache
+  size: 2251263
+  timestamp: 1676837602636
+- name: ninja
+  version: 1.11.1
+  manager: conda
+  platform: osx-64
+  dependencies:
+    libcxx: '>=14.0.6'
+  url: https://conda.anaconda.org/conda-forge/osx-64/ninja-1.11.1-hb8565cd_0.conda
+  hash:
+    md5: 49ad513efe39447aa51affd47e3aa68f
+    sha256: 6f738d9a26fa275317b95b2b96832daab9059ef64af9a338f904a3cb684ae426
+  optional: false
+  category: main
+  build: hb8565cd_0
+  arch: x86_64
+  subdir: osx-64
+  build_number: 0
+  license: Apache-2.0
+  license_family: Apache
+  size: 121284
+  timestamp: 1676837793132
+- name: ninja
+  version: 1.11.1
+  manager: conda
+  platform: osx-arm64
+  dependencies:
+    libcxx: '>=14.0.6'
+  url: https://conda.anaconda.org/conda-forge/osx-arm64/ninja-1.11.1-hffc8910_0.conda
+  hash:
+    md5: fdecec4002f41cf6ea1eea5b52947ee0
+    sha256: a594e90b0ed8202c280fff4a008f6a355d0db54a62b17067dc4a950370ddffc0
+  optional: false
+  category: main
+  build: hffc8910_0
+  arch: aarch64
+  subdir: osx-arm64
+  build_number: 0
+  license: Apache-2.0
+  license_family: Apache
+  size: 107047
+  timestamp: 1676837935565
+- name: ninja
+  version: 1.11.1
+  manager: conda
+  platform: win-64
+  dependencies:
+    ucrt: '>=10.0.20348.0'
+    vc: '>=14.2,<15'
+    vs2015_runtime: '>=14.29.30139'
+  url: https://conda.anaconda.org/conda-forge/win-64/ninja-1.11.1-h91493d7_0.conda
+  hash:
+    md5: 44a99ef26178ea98626ff8e027702795
+    sha256: 0ffb1912768af8354a930f482368ef170bf3d8217db328dfea1c8b09772c8c71
+  optional: false
+  category: main
+  build: h91493d7_0
+  arch: x86_64
+  subdir: win-64
+  build_number: 0
+  license: Apache-2.0
+  license_family: Apache
+  size: 279200
+  timestamp: 1676838681615
 - name: numpy
   version: 1.26.4
   manager: conda
