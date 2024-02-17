@@ -16,8 +16,6 @@
 
 #include "AudioBlock.h"
 
-#include <cstring>
-
 #define DEFAULT_LOG_CHANNEL "AudioBlock"
 #include <logging/Checks.h>
 #include <logging/Log.h>
@@ -46,12 +44,20 @@ AudioBlock::AudioBlock(const AudioContentBlockSpec& spec, vector<uint8_t>&& fram
   THROTTLED_VERIFY(nullptr, size == ContentBlock::kSizeUnknown || size == audioBytes_.size());
 }
 
-void AudioBlock::init(const AudioContentBlockSpec& spec) {
-  audioSpec_ = spec;
+AudioBlock::AudioBlock(const AudioContentBlockSpec& spec) : audioSpec_{spec} {
+  allocateBytes();
+}
+
+void AudioBlock::allocateBytes() {
   size_t size = audioSpec_.getBlockSize();
   if (size != ContentBlock::kSizeUnknown) {
     audioBytes_.resize(size);
   }
+}
+
+void AudioBlock::init(const AudioContentBlockSpec& spec) {
+  audioSpec_ = spec;
+  allocateBytes();
 }
 
 void AudioBlock::init(const AudioContentBlockSpec& spec, vector<uint8_t>&& frameBytes) {
@@ -83,6 +89,24 @@ bool AudioBlock::readBlock(RecordReader* reader, const ContentBlock& cb) {
   audioSpec_ = spec;
   audioBytes_.resize(blockSize);
   return THROTTLED_VERIFY(reader->getRef(), reader->read(audioBytes_.data(), blockSize) == 0);
+}
+
+bool AudioBlock::decompressAudio(AudioDecompressionHandler& handler) {
+  switch (audioSpec_.getAudioFormat()) {
+    case AudioFormat::PCM:
+      return true;
+    case AudioFormat::OPUS: {
+      AudioBlock decodedBlock;
+      if (opusDecompress(handler, decodedBlock)) {
+        *this = std::move(decodedBlock);
+        return true;
+      }
+      return false;
+    }
+    default:
+      return false;
+  }
+  return false;
 }
 
 } // namespace vrs::utils

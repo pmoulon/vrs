@@ -16,8 +16,6 @@
 
 #include "AudioPlayer.h"
 
-#include <vector>
-
 #include <portaudio.h>
 
 #define DEFAULT_LOG_CHANNEL "AudioPlayer"
@@ -57,9 +55,6 @@ bool AudioPlayer::onAudioRead(const CurrentRecord& record, size_t blkIdx, const 
   // XR_LOGI("Audio block: {:.3f} {}", record.timestamp, contentBlock.asString());
   AudioBlock audioBlock;
   if (audioBlock.readBlock(record.reader, cb)) {
-    if (cb.audio().getAudioFormat() != AudioFormat::PCM) {
-      return true; // we read the audio, but we don't actually support it in vrsplayer (yet!)
-    }
     if (!failedInit_) {
       const auto& audio = cb.audio();
       if (paStream_ == nullptr) {
@@ -74,7 +69,7 @@ bool AudioPlayer::onAudioRead(const CurrentRecord& record, size_t blkIdx, const 
             audio.asString());
       } else if (
           VideoTime::getPlaybackSpeed() <= 1 && sampleFormat_ == audio.getSampleFormat() &&
-          audio.getSampleCount() >= channelCount_) {
+          audio.getChannelCount() >= channelCount_ && audioBlock.getSampleCount() > 0) {
         playbackQueue_.sendJob(std::move(audioBlock));
       }
     }
@@ -176,6 +171,14 @@ void AudioPlayer::mediaStateChanged(FileReaderState state) {
 void AudioPlayer::playbackThread() {
   AudioBlock block;
   while (playbackQueue_.waitForJob(block)) {
+    if (block.getAudioFormat() == AudioFormat::OPUS) {
+      if (!block.decompressAudio(opusHandler_)) {
+        continue;
+      }
+    }
+    if (block.getAudioFormat() != AudioFormat::PCM) {
+      continue;
+    }
     uint32_t frameCount = block.getSampleCount();
     uint8_t frameStride = block.getSpec().getSampleFrameStride();
     uint8_t paFrameStride = channelCount_ * block.getSpec().getBytesPerSample();
@@ -191,7 +194,7 @@ void AudioPlayer::playbackThread() {
         Pa_WriteStream(paStream_, src, frameBatchSize);
       } else {
         // either we play fewer channels than provided, or frames are padded, we need to compact
-        uint8_t* dst = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(block.rdata()));
+        uint8_t* dst = block.data<uint8_t>();
         uint32_t sample = 0;
         while (dst + paFrameStride > src && sample < frameBatchSize) {
           memmove(dst, src, paFrameStride); // more expensive, but safe in case of overlap

@@ -21,9 +21,29 @@
 #include <vrs/RecordFormat.h>
 #include <vrs/RecordReaders.h>
 
+using OpusEncoder = struct OpusEncoder;
+using OpusDecoder = struct OpusDecoder;
+
 namespace vrs::utils {
 
 using std::vector;
+
+struct AudioCompressionHandler {
+  OpusEncoder* encoder{};
+  AudioContentBlockSpec encoderSpec;
+
+  bool create(const AudioContentBlockSpec& spec);
+  int compress(const void* samples, uint32_t sampleCount, void* outOpusBytes, size_t maxBytes);
+
+  ~AudioCompressionHandler();
+};
+
+struct AudioDecompressionHandler {
+  OpusDecoder* decoder{};
+  AudioContentBlockSpec decoderSpec;
+
+  ~AudioDecompressionHandler();
+};
 
 /// Helper class to read & convert audio blocks.
 class AudioBlock {
@@ -32,7 +52,7 @@ class AudioBlock {
   AudioBlock(AudioBlock&& other) noexcept = default;
   AudioBlock(const AudioContentBlockSpec& spec, vector<uint8_t>&& frameBytes);
   explicit AudioBlock(const AudioContentBlockSpec& spec);
-  explicit AudioBlock(
+  AudioBlock(
       AudioFormat audioFormat,
       AudioSampleFormat sampleFormat,
       uint8_t channelCount = 0,
@@ -84,6 +104,10 @@ class AudioBlock {
   uint32_t getSampleCount() const {
     return audioSpec_.getSampleCount();
   }
+  void setSampleCount(uint32_t sampleCount) {
+    audioSpec_.setSampleCount(sampleCount);
+    allocateBytes();
+  }
 
   vector<uint8_t>& getBuffer() {
     return audioBytes_;
@@ -93,6 +117,14 @@ class AudioBlock {
   }
   uint8_t* wdata() {
     return audioBytes_.data();
+  }
+  template <class T>
+  const T* data(size_t byte_offset = 0) const {
+    return reinterpret_cast<const T*>(audioBytes_.data() + byte_offset);
+  }
+  template <class T>
+  T* data(size_t byte_offset = 0) {
+    return reinterpret_cast<T*>(audioBytes_.data() + byte_offset);
   }
   size_t size() const {
     return audioBytes_.size();
@@ -108,7 +140,18 @@ class AudioBlock {
   /// @return True if the audio block type is supported & the audio block was read.
   bool readBlock(RecordReader* reader, const ContentBlock& cb);
 
+  /// From any supported AudioFormat, decompress the audio block to AudioFormat::PCM if necessary.
+  bool decompressAudio(AudioDecompressionHandler& handler);
+
+  /// Decode an Opus encoded audio block into the internal buffer.
+  /// @param handler: Compression/decompression handler to be reused for that audio stream.
+  /// @param outAudioBlock: On success, on exit, set to the audio extracted.
+  /// @return True only if the audio block was decompressed and outAudioBlock is valid (success).
+  bool opusDecompress(AudioDecompressionHandler& handler, AudioBlock& outAudioBlock);
+
  private:
+  void allocateBytes();
+
   AudioContentBlockSpec audioSpec_;
   vector<uint8_t> audioBytes_;
 };
