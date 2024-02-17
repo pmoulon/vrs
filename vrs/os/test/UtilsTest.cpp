@@ -126,7 +126,11 @@ TEST_F(FileTest, testPathExists) {
 
 TEST_F(FileTest, testGetFileSize) {
   EXPECT_EQ(0, os::getFileSize(os::pathJoin(testDataDir, "/filetest/a.txt"))); // empty
+#if !IS_WINDOWS_PLATFORM()
   EXPECT_EQ(10, os::getFileSize(os::pathJoin(testDataDir, "/filetest/b.txt"))); // something
+#else 
+  EXPECT_EQ(11, os::getFileSize(os::pathJoin(testDataDir, "/filetest/b.txt"))); // something
+#endif
   // Windows does not have symlinks
 #if !IS_WINDOWS_PLATFORM()
   EXPECT_EQ(5, os::getFileSize(os::pathJoin(testDataDir, "/filetest/c.txt"))); // through symlink
