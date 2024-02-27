@@ -1,0 +1,2 @@
+# Declare that txt file must remain as provided
+*.txt binary
